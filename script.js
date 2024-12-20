@@ -79,7 +79,7 @@ function displayProducts(products) {
                 <p>${product.identification}</p>
             </div>
             <div class="product-card-actions">
-                <button class="edit-button">Edit</button>
+                <button class="edit-button"><svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M9 39h2.2l22.15-22.15-2.2-2.2L9 36.8Zm30.7-24.3-6.4-6.4 2.1-2.1q.85-.85 2.125-.825 1.275.025 2.125.875L41.8 8.4q.85.85.85 2.1t-.85 2.1ZM7.5 42q-.65 0-1.075-.425Q6 41.15 6 40.5v-4.3q0-.3.1-.55.1-.25.35-.5L31.2 10.4l6.4 6.4-24.75 24.75q-.25.25-.5.35-.25.1-.55.1Zm24.75-26.25-1.1-1.1 2.2 2.2Z"/></svg></button>
                 <button class="delete-button">Delete</button>
             </div>
         `;
@@ -452,8 +452,16 @@ function openNavPage(index) {
     for (var i = 0; i < button.length; i++) {
         if (i == index) {
             button[i].classList.add("active-nav");
+            if (i === 2) {
+                button[i].classList.add("special-nav");
+                button[i].style.backgroundColor = "darkorange";
+            }
         } else {
             button[i].classList.remove("active-nav");
+            if (i === 2) {
+                button[i].classList.remove("special-nav");
+                button[i].style.backgroundColor = "#000066";
+            }
         }
     }
     for (var j = 0; j < pages.length; j++) {

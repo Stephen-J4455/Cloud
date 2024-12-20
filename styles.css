@@ -14,26 +14,38 @@ h1 {
     text-align: center;
     color: #333;
 }
+/* .page-head {
+    height: 100px;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    background-color: #cccccc;
+    border-bottom-right-radius: 20px;
+    border-bottom-left-radius: 20px;
+} */
 .search-container {
     position: fixed;
     text-align: center;
     display: flex;
     margin: 5px 5px;
+    top: 5px;
 }
 .search-container input[type="text"] {
     width: 80%;
     padding: 10px;
     margin-right: 10px;
     border: 1px solid #ddd;
-    border-radius: 7px;
+    border-radius: 10px;
 }
 .search-container button {
     background-color: #000066;
     color: white;
-    padding: 10px 20px;
+    padding: 0 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     border: none;
-    border-radius: 7px;
-    cursor: pointer;
+    border-radius: 10px;
 }
 .search-container button:hover {
     background-color: #000099;
@@ -42,7 +54,7 @@ h1 {
     display: grid;
     grid-template-columns: repeat(2, 1fr); /* Creates 2 equal-width columns */
     gap: 10px;
-    margin-top: 100px;
+    margin-top: 50px;
     justify-content: center; /* Centers the grid */
     padding: 5px;
 }
@@ -55,26 +67,30 @@ h1 {
 }
 .product-card img {
     width: 100%;
-    height: auto;
+    height: 180px;
 }
 .product-card-content {
-    padding: 5px;
+    padding: 1px;
     text-align: center;
+    font-size: 0.8em;
 }
 .product-card-content h3 {
     margin: 0;
     font-size: 1em;
-    color: #333;
+    color: blue;
+    height: 30px;
+    font-weight: 800;
+    font-family: "Arial";
 }
 .product-card-content p {
-    color: #666;
-    margin: 10px 0;
+    color: #b60dff;
+    margin: 5px 0;
 }
 .product-card-actions {
     display: flex;
     justify-content: space-around;
     padding: 10px;
-    background-color: #f2f2f2;
+    background-color: #cccccc;
 }
 .product-card-actions button {
     background-color: #000066;
@@ -100,6 +116,8 @@ h1 {
     height: 90%;
     width: 100%;
     background-color: #fff;
+    /* background: linear-gradient(45deg, #000066, #0dc7ff); */
+    background: linear-gradient(45deg, #fff, #cccccc);
     padding: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     display: none;
@@ -109,22 +127,36 @@ h1 {
 .edit-container label {
     display: block;
     margin: 10px 0 5px;
+    color: #181818;
+    font-weight: 900;
+}
+.edit-container h2 {
+    position: relative;
+    text-align: center;
+    font-family: Trebuchet MS;
+    font-weight: 900;
 }
 .edit-container input[type="text"],
 .edit-container input[type="number"],
 .edit-container textarea {
     width: 85%;
+    font-weight: 900;
     padding: 10px;
     margin-bottom: 10px;
     border: 1px solid #ddd;
     border-radius: 6px;
 }
+#product-color {
+    color: #767676;
+}
 .edit-container button {
     background-color: #000066;
     color: white;
     padding: 10px 65px;
-    border: none;
-    border-radius: 4px;
+    border: 0.5px solid #fff;
+    border-radius: 7px;
+    margin: 7px 0px;
+    font-weight: 900;
 }
 .edit-container button:hover {
     background-color: #45a049;
@@ -139,6 +171,7 @@ h1 {
     width: 100%;
     background-color: #fff;
     color: #000066;
+    font-weight: 900;
     align-self: center;
     justify-content: center;
 }
@@ -153,7 +186,7 @@ h1 {
 }
 #bottomNav span:nth-child(3) {
     background-color: #000066;
-    color: #fff;
+    color: white;
     height: 40px;
     width: 40px;
     margin: 0px 3;
@@ -165,6 +198,9 @@ h1 {
     border-radius: 5px;
     width: 60px;
     transform: scale(1.09);
+}
+.special-nav {
+    transform: rotate(90deg) scale(1.2);
 }
 #productPage {
     width: 100%;
@@ -337,9 +373,12 @@ h1.order-heading {
     border: none;
     top: 0;
     bottom: 0px;
-    background-color: rgb(4, 12, 48);
+    /* background-color: rgb(4, 12, 48); */
+    background-color: transparent;
+    backdrop-filter: blur(10px);
     color: white;
     width: 55%;
+    height: 84%;
     padding: 3px 10px;
     display: flex;
     flex-direction: column;
@@ -355,6 +394,7 @@ h1.order-heading {
 .nav-menu span {
     padding: 15px 10px;
     border-radius: 10px;
+    background-color: #000066;
 }
 
 .nav-menu span:hover {
