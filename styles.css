@@ -475,7 +475,7 @@ h1.order-heading {
 
 /* end noti */
 .homepage-product-upload {
-  background: linear-gradient(45deg, #fff, #adc9e9);
+  background: linear-gradient(45deg, #fff, #cccccc);
   position: relative;
   height: fit-content;
   bottom: 0;
