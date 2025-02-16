@@ -517,7 +517,7 @@ h1 {
 .form-group input[type="text"],
 input[type="number"],
 textarea {
-  width: 90%;
+  width: 80%;
   padding: 15px 11px;
   border: 1px solid #ddd;
   border-radius: 5px;
@@ -617,29 +617,26 @@ textarea:focus {
 .product-id {
   font-weight: bold;
   color: #007bff;
-  margin: 3px 5px;
+  margin: 0 auto;
 }
 
 .ref {
   font-weight: 700;
-  margin: 3px 5px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 .refValue {
-  margin: 3px 5px;
   font-weight: bold;
   color: #007bff;
 }
 .chosen-cat {
   margin: 3px 55px;
-  position: fixed;
   z-index: 10;
   font-weight: 700;
   color: #000066;
-  backdrop-filter: blur(5px);
-  padding: 3px 5px;
-  border-radius: 7px;
 }
 /* for product page  */
 #progress-bar {
@@ -674,9 +671,13 @@ textarea:focus {
   text-align: center;
 }
 #logo {
-  height: 30%;
-  width: 30%;
-  margin-left: 36%;
+  position: fixed;
+  width: 30px;
+  height: 30px;
+  margin: 0;
+  right: 5px;
+  top: 5px;
+  border-radius: 50px;
 }
 .persist-error {
   color: red;
