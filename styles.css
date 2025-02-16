@@ -520,7 +520,7 @@ textarea {
   width: 80%;
   padding: 15px 11px;
   border: 1px solid #ddd;
-  border-radius: 5px;
+  border-radius: 10px;
   background-color: #f9f9f9;
   transition: all 0.3s ease;
   outline-color: blue;
