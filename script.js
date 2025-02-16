@@ -110,7 +110,7 @@ function displayProducts(products) {
     // Add event listener for the Delete button
     const deleteButton = card.querySelector(".delete-button");
     deleteButton.addEventListener("click", () => {
-      deleteProduct(product.identification, product.path, deleteButtons);
+      deleteProduct(product.identification, product.path, deleteButton);
 
       // Change button text when clicked
       deleteButton.textContent = "Deleting...";
