@@ -475,7 +475,7 @@ h1.order-heading {
 
 /* end noti */
 .homepage-product-upload {
-  background: linear-gradient(45deg, #fff, #cccccc);
+  background: linear-gradient(45deg, #fff, #adc9e9);
   position: relative;
   height: fit-content;
   bottom: 0;
@@ -517,7 +517,7 @@ h1 {
 .form-group input[type="text"],
 input[type="number"],
 textarea {
-  width: 86%;
+  width: 80%;
   padding: 15px 11px;
   border: 1px solid #ddd;
   border-radius: 5px;
