@@ -517,7 +517,7 @@ h1 {
 .form-group input[type="text"],
 input[type="number"],
 textarea {
-  width: 80%;
+  width: 85%;
   padding: 15px 11px;
   border: 1px solid #ddd;
   border-radius: 5px;
