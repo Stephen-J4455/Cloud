@@ -66,9 +66,29 @@ function getProducts() {
 }
 
 // Function to display products
-function displayProducts(products) {
-  productContainer.innerHTML = "";
-  products.forEach((product) => {
+// ...existing code...
+
+// Infinite scroll variables
+// ...existing code...
+
+// Infinite scroll variables
+let productsPerPage = 10;
+let currentProductIndex = 0;
+let currentProducts = [];
+
+// Infinite scroll displayProducts
+function displayProducts(products, reset = true) {
+  if (reset) {
+    productContainer.innerHTML = "";
+    currentProductIndex = 0;
+    currentProducts = products;
+  }
+  // Load next batch
+  const nextProducts = currentProducts.slice(
+    currentProductIndex,
+    currentProductIndex + productsPerPage
+  );
+  nextProducts.forEach((product) => {
     const card = document.createElement("div");
     card.className = "product-card";
     card.innerHTML = `
@@ -116,9 +136,62 @@ function displayProducts(products) {
       deleteButton.textContent = "Deleting...";
     });
   });
+  currentProductIndex += productsPerPage;
 }
 
-// Function to search products
+// Infinite scroll handler (works for both container and window scroll)
+function handleProductScroll() {
+  // If productContainer is scrollable, use its scroll
+  if (
+    productContainer.scrollHeight > productContainer.clientHeight &&
+    productContainer.scrollTop + productContainer.clientHeight >=
+      productContainer.scrollHeight - 50
+  ) {
+    if (currentProductIndex < currentProducts.length) {
+      displayProducts(currentProducts, false);
+    }
+  }
+  // If not scrollable (e.g. body scroll), check window scroll
+  else if (
+    window.innerHeight + window.scrollY >=
+    document.body.offsetHeight - 50
+  ) {
+    if (currentProductIndex < currentProducts.length) {
+      displayProducts(currentProducts, false);
+    }
+  }
+}
+
+// Attach scroll event to both productContainer and window
+productContainer.addEventListener("scroll", handleProductScroll);
+window.addEventListener("scroll", handleProductScroll);
+
+// ...existing code...
+// Update getProducts to use new displayProducts
+function getProducts() {
+  allProducts = [];
+  let loadedPaths = 0;
+  paths.forEach((path) => {
+    db.ref(path).once("value", (snapshot) => {
+      snapshot.forEach((childSnapshot) => {
+        const product = childSnapshot.val();
+        const productId = childSnapshot.key;
+        allProducts.push({
+          ...product,
+          id: productId,
+          path: path,
+        });
+      });
+      loadedPaths++;
+      // Only display after all paths are loaded
+      if (loadedPaths === paths.length) {
+        displayProducts(allProducts, true);
+      }
+    });
+  });
+}
+
+// Update searchProducts to use new displayProducts
 function searchProducts() {
   const searchTerm = document
     .getElementById("search-input")
@@ -126,8 +199,10 @@ function searchProducts() {
   const filteredProducts = allProducts.filter((product) =>
     product.name.toLowerCase().includes(searchTerm)
   );
-  displayProducts(filteredProducts);
+  displayProducts(filteredProducts, true);
 }
+
+// ...existing code...
 
 // Function to edit product
 function editProduct(
@@ -276,171 +351,244 @@ getProducts();
 // order page script
 
 // Function to show paths view
-function showPaths() {
-  document.getElementById("order-path-view").classList.remove("order-hidden");
-  document.getElementById("order-content-view").classList.add("order-hidden");
-  loadPaths();
-}
+// ...existing code...
 
-// Function to show content view
-function showContent(path) {
+// Show all orders from all users, not grouped by user
+function showAllOrders() {
   document.getElementById("order-path-view").classList.add("order-hidden");
   document
     .getElementById("order-content-view")
     .classList.remove("order-hidden");
-  loadContent(path);
+  loadAllOrders();
 }
 
-// Function to hide loader
-function hideLoader() {
-  document.getElementById("order-loader-wrapper").style.display = "none";
-}
+function loadAllOrders() {
+  const contentList = document.getElementById("order-content-list");
+  contentList.innerHTML = "";
+  document.getElementById("order-loader-wrapper").style.display = "flex";
 
-// Load paths from Firebase
-function loadPaths() {
-  db.ref("CHECKOUT")
+  // Fetch all user info first for mapping user keys to details
+  db.ref("USER/ADDRESS")
     .once("value")
-    .then((snapshot) => {
-      const dataList = document.getElementById("order-data-list");
-      dataList.innerHTML = "";
-      snapshot.forEach((childSnapshot) => {
-        const path = childSnapshot.key;
-        let additionalInfo = "";
-        let imagesHtml = "";
-        let username = "Unknown User";
-        const images = [];
-
-        childSnapshot.forEach((grandchildSnapshot) => {
-          const childData = grandchildSnapshot.val();
-          additionalInfo = `
-                                    <p>Contact: ${
-                                      childData.contact || "N/A"
-                                    }</p>
-                                    <p>Address: ${
-                                      childData.location || "N/A"
-                                    }</p>
-                                    <p>City: ${childData.city || "N/A"}</p>
-                                    <p>Birthday: ${
-                                      childData.birthday || "N/A"
-                                    }</p>
-                                    <p>Email: ${childData.email || "N/A"}</p>
-                                    <p>Account: ${
-                                      childData.account || "N/A"
-                                    }</p>
-                                `;
-          if (childData.username) {
-            username = childData.username;
-          }
-          if (childData.image1) {
-            images.push(childData.image1);
-          }
-        });
-
-        if (images.length > 0) {
-          imagesHtml = `
-                                    <div class="order-small-images">
-                                        <img src="${images[0]}" alt="Image 1">
-                                        ${
-                                          images.length > 1
-                                            ? `<img src="${images[1]}" alt="Image 2">`
-                                            : ""
-                                        }
-                                    </div>
-                                `;
-        }
-
-        const card = document.createElement("div");
-        card.className = "order-card";
-        card.innerHTML = `
-                                <h3>${username}</h3>
-                                ${imagesHtml}
-                                ${additionalInfo}
-                            `;
-        card.onclick = () => showContent(path);
-        dataList.appendChild(card);
+    .then((userSnap) => {
+      const userInfo = {};
+      userSnap.forEach((user) => {
+        userInfo[user.key] = user.val();
       });
 
-      hideLoader(); // Hide the loader once data is loaded
-      document
-        .getElementById("order-path-view")
-        .classList.remove("order-hidden");
-    })
-    .catch((error) => {
-      console.error("Error fetching data:", error);
-      hideLoader(); // Hide the loader even if there's an error
-    });
-}
+      // Listen for real-time updates on orders
+      db.ref("CHECKOUT").on("value", (snapshot) => {
+        const groupedOrders = {};
 
-// Load content for a specific path from Firebase
-function loadContent(path) {
-  db.ref(`CHECKOUT/${path}`)
-    .once("value")
-    .then((snapshot) => {
-      const contentList = document.getElementById("order-content-list");
-      contentList.innerHTML = "";
-      const data = snapshot.val();
-      if (data) {
-        Object.keys(data).forEach((key) => {
-          const item = data[key];
-          const card = document.createElement("div");
-          card.className = "order-card";
+        // Group orders by user and timestamp (rounded to minute)
+        snapshot.forEach((userSnap) => {
+          const userKey = userSnap.key;
+          userSnap.forEach((orderSnap) => {
+            const order = orderSnap.val();
+            order._id = orderSnap.key;
+            order._user = userKey;
 
-          const image = document.createElement("img");
-          const price = document.createElement("p");
-          const seller = document.createElement("p");
-          const id = document.createElement("p");
-          const description = document.createElement("p");
-          const additionalInfo = document.createElement("p");
-          const size = document.createElement("p");
-          const color = document.createElement("p");
+            // Use timestamp rounded to the nearest minute as group key
+            const ts = order.timestamp
+              ? Math.floor(order.timestamp / 60)
+              : Math.floor(Date.now() / 60000);
+            const groupKey = `${userKey}_${ts}`;
 
-          image.src = item.image1 || "https://via.placeholder.com/300"; // Default image
-          price.textContent = `Price: Ghc${item.price || "N/A"}`;
-          seller.textContent = `Seller: ${item.seller || "N/A"}`;
-          id.textContent = `ID: ${item.id || "N/A"}`;
-          description.textContent = `Description: ${item.description || "N/A"}`;
-          additionalInfo.textContent = `Additional Info: ${
-            item.additionalInfo || "N/A"
-          }`;
-          size.textContent = `Size: ${item.size || "N/A"}`;
-          color.textContent = `Color: ${item.color || "N/A"}`;
+            if (!groupedOrders[groupKey]) {
+              groupedOrders[groupKey] = {
+                userKey,
+                timestamp: order.timestamp || Date.now() / 1000,
+                orders: [],
+                status: order.status || "pending",
+                orderNumber: `ORD-${userKey
+                  .substring(0, 4)
+                  .toUpperCase()}-${ts}`,
+              };
+            }
+            groupedOrders[groupKey].orders.push(order);
 
-          // Append elements to card
-          card.appendChild(image);
-          card.appendChild(price);
-          card.appendChild(seller);
-          card.appendChild(id);
-          card.appendChild(description);
-          card.appendChild(additionalInfo);
-          card.appendChild(size);
-          card.appendChild(color);
-
-          contentList.appendChild(card);
+            // If any order in the group is pending, group is pending
+            if (order.status !== "delivered") {
+              groupedOrders[groupKey].status = "pending";
+            }
+          });
         });
-      } else {
-        contentList.style.backgroundColor = "black";
-      }
 
-      hideLoader(); // Hide the loader once content is loaded
+        // Convert grouped orders to array and sort by timestamp (latest first)
+        const groupedOrdersArr = Object.values(groupedOrders).sort(
+          (a, b) => (b.timestamp || 0) - (a.timestamp || 0)
+        );
+
+        if (groupedOrdersArr.length === 0) {
+          contentList.innerHTML = "<p>No orders found.</p>";
+        } else {
+          contentList.innerHTML = ""; // Clear previous table
+          const table = document.createElement("table");
+          table.className = "modern-order-table";
+          table.innerHTML = `
+            <thead>
+              <tr>
+                <th>Order #</th>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Products</th>
+                <th>Total Price (Ghc)</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          `;
+          const tbody = table.querySelector("tbody");
+
+          groupedOrdersArr.forEach((group) => {
+            // Date (fix: handle seconds/milliseconds)
+            let dateStr = "";
+            if (group.timestamp) {
+              let ts = group.timestamp;
+              if (ts < 10000000000) ts = ts * 1000; // If in seconds, convert to ms
+              const date = new Date(ts);
+              dateStr =
+                date.toLocaleDateString() + " " + date.toLocaleTimeString();
+            } else {
+              dateStr = group.orderNumber;
+            }
+
+            // Customer details
+            const user = userInfo[group.userKey] || {};
+            const name = user.account || user.name || "N/A";
+            const email = user.email || "N/A";
+            const phone = user.phone || user.phoneNumber || "N/A";
+            const location = user.location || user.address || "N/A";
+            const customerHTML = `
+              <div><strong>${name}</strong></div>
+              <div style="font-size:0.95em;color:#555;">Email: ${email}</div>
+              <div style="font-size:0.95em;color:#555;">Phone: ${phone}</div>
+              <div style="font-size:0.95em;color:#555;">Location: ${location}</div>
+            `;
+
+            // Products details (list all products in the group)
+            let totalPrice = 0;
+            const productsHTML = group.orders
+              .map((item) => {
+                const productName = item.name || item.productName || "N/A";
+                const productId =
+                  item.identification || item.productId || item._id || "N/A";
+                const color = item.color || "N/A";
+                const image =
+                  item.image1 ||
+                  item.image ||
+                  (item.images && item.images[0]) ||
+                  "https://via.placeholder.com/80x80?text=No+Image";
+                const price = Number(item.price || item.sellingprice || 0);
+                const quantity = Number(item.quantity || 1);
+                const subtotal = price * quantity;
+                totalPrice += subtotal;
+                return `
+                  <div style="margin-bottom:8px;">
+                    <div><strong style="color:#000066;">${productName}</strong></div>
+                    <img src="${image}" alt="${productName}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;margin:4px 0;" />
+                    <div style="font-size:0.95em;">Color: <span style="display:inline-block;width:16px;height:16px;background:${color};border-radius:50%;vertical-align:middle;margin-right:4px;border:1px solid #ccc;"></span> ${color}</div>
+                    <div style="font-size:0.95em;">ID: <span style="color:#4a90e2;">${productId}</span></div>
+                    <div style="font-size:0.95em;color:#e67e22;">Price: Ghc${price.toLocaleString()} x <span style="color:#27ae60;">${quantity}</span></div>
+                    <div style="font-size:0.95em;color:#007bff;">Subtotal: Ghc${subtotal.toLocaleString()}</div>
+                  </div>
+                `;
+              })
+              .join("<hr style='margin:4px 0;'>");
+
+            // Status
+            const status =
+              group.status === "delivered" ? "delivered" : "pending";
+            const statusHTML = `<span class="order-status ${status}">${
+              status.charAt(0).toUpperCase() + status.slice(1)
+            }</span>`;
+
+            // Action button
+            let actionHTML = "";
+            if (status === "pending") {
+              actionHTML = `<button class="deliver-btn" data-user="${
+                group.userKey
+              }" data-ts="${Math.floor(
+                group.timestamp / 60
+              )}">Mark as Delivered</button>`;
+            } else {
+              actionHTML = `<button class="deliver-btn" disabled>Delivered</button>`;
+            }
+
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td data-label="Order #">${group.orderNumber}</td>
+              <td data-label="Date">${dateStr}</td>
+              <td data-label="Customer">${customerHTML}</td>
+              <td data-label="Products">${productsHTML}</td>
+              <td data-label="Total Price (Ghc)" style="color:#27ae60;font-weight:700;">${totalPrice.toLocaleString()}</td>
+              <td data-label="Status">${statusHTML}</td>
+              <td data-label="Action">${actionHTML}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+
+          contentList.appendChild(table);
+
+          // Add event listeners for deliver buttons
+          contentList
+            .querySelectorAll(".deliver-btn[data-user]")
+            .forEach((btn) => {
+              btn.addEventListener("click", function () {
+                const userKey = btn.getAttribute("data-user");
+                const ts = btn.getAttribute("data-ts");
+                // Find all orders for this user and timestamp group
+                db.ref(`CHECKOUT/${userKey}`)
+                  .once("value")
+                  .then((userOrdersSnap) => {
+                    const updates = {};
+                    userOrdersSnap.forEach((orderSnap) => {
+                      const order = orderSnap.val();
+                      const orderTs = order.timestamp
+                        ? Math.floor(order.timestamp / 60)
+                        : null;
+                      if (orderTs && orderTs.toString() === ts) {
+                        updates[orderSnap.key + "/status"] = "delivered";
+                      }
+                    });
+                    return db.ref(`CHECKOUT/${userKey}`).update(updates);
+                  })
+                  .then(() => {
+                    btn.textContent = "Delivered";
+                    btn.classList.add("delivered");
+                    btn
+                      .closest("tr")
+                      .querySelector(".order-status").textContent = "Delivered";
+                    btn.closest("tr").querySelector(".order-status").className =
+                      "order-status delivered";
+                  })
+                  .catch(() => {
+                    btn.disabled = false;
+                    btn.textContent = "Mark as Delivered";
+                    alert("Failed to update status. Try again.");
+                  });
+              });
+            });
+        }
+        document.getElementById("order-loader-wrapper").style.display = "none";
+      });
     })
     .catch((error) => {
-      console.error("Error fetching content:", error);
-      document.getElementById("order-content-list").textContent =
-        "Error loading content.";
-      hideLoader(); // Hide the loader even if there's an error
+      contentList.innerHTML = "<p>Error loading orders.</p>";
+      document.getElementById("order-loader-wrapper").style.display = "none";
+      console.error(error);
     });
 }
 
-// Initialize the page view based on URL parameter
+// --- Replace the old order page initialization with this ---
 (function init() {
   const urlParams = new URLSearchParams(window.location.search);
-  const path = urlParams.get("path");
-  if (path) {
-    showContent(path);
-  } else {
-    showPaths();
-  }
+  // Always show all orders flat, not grouped
+  showAllOrders();
 })();
+
+// ...existing code...
 
 function openNavPage(index) {
   const button = document.querySelectorAll("#bottomNav span");
