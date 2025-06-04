@@ -37,9 +37,33 @@
           </button>
         </div>
       </div>
-      <div class="product-container" id="product-container">
-        <!-- Product cards will be added here -->
+      <!-- ...existing code... -->
+      <div
+        class="product-container"
+        id="product-container"
+        style="display: none">
+        <!-- Product cards will be added here (hidden now) -->
       </div>
+      <table class="modern-order-table" id="product-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Product ID</th>
+            <th>Name</th>
+            <th>Selling Price</th>
+            <th>Cost Price</th>
+            <th>Seller</th>
+            <th>Description</th>
+            <th>Size</th>
+            <th>Color</th>
+            <th>Path</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Product rows will be inserted here -->
+        </tbody>
+      </table>
 
       <div class="edit-container" id="edit-container">
         <h2>Edit Product</h2>
@@ -366,6 +390,19 @@
         >Statistics</span
       >
     </nav>
+
+    <div id="moveModal" class="modal" style="display: none">
+      <div class="modal-content">
+        <span id="closeMoveModal" class="close">&times;</span>
+        <h3>Move Product to Another Path</h3>
+        <select
+          id="movePathSelect"
+          style="width: 100%; padding: 8px; margin: 12px 0"></select>
+        <button id="confirmMoveBtn" class="move-button" style="width: 100%">
+          Move
+        </button>
+      </div>
+    </div>
 
     <script src="script.js"></script>
   </body>

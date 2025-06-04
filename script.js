@@ -65,21 +65,16 @@ function getProducts() {
   });
 }
 
-// Function to display products
-// ...existing code...
-
-// Infinite scroll variables
-// ...existing code...
-
-// Infinite scroll variables
 let productsPerPage = 10;
 let currentProductIndex = 0;
 let currentProducts = [];
 
-// Infinite scroll displayProducts
+// ...existing code...
 function displayProducts(products, reset = true) {
+  const table = document.getElementById("product-table");
+  const tbody = table.querySelector("tbody");
   if (reset) {
-    productContainer.innerHTML = "";
+    tbody.innerHTML = "";
     currentProductIndex = 0;
     currentProducts = products;
   }
@@ -89,26 +84,43 @@ function displayProducts(products, reset = true) {
     currentProductIndex + productsPerPage
   );
   nextProducts.forEach((product) => {
-    const card = document.createElement("div");
-    card.className = "product-card";
-    card.innerHTML = `
-            <img src="${product.image1}" alt="${product.name}" />
-            <div class="product-card-content">
-                <h3>${product.name}</h3>
-                <p>Ghc${product.sellingprice}</p>
-                <p>${product.identification}</p>
-            </div>
-            <div class="product-card-actions">
-                <button class="edit-button"><svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" height="1.5em" width="1.5em"><path fill="currentColor" d="M9 39h2.2l22.15-22.15-2.2-2.2L9 36.8Zm30.7-24.3-6.4-6.4 2.1-2.1q.85-.85 2.125-.825 1.275.025 2.125.875L41.8 8.4q.85.85.85 2.1t-.85 2.1ZM7.5 42q-.65 0-1.075-.425Q6 41.15 6 40.5v-4.3q0-.3.1-.55.1-.25.35-.5L31.2 10.4l6.4 6.4-24.75 24.75q-.25.25-.5.35-.25.1-.55.1Zm24.75-26.25-1.1-1.1 2.2 2.2Z"/></svg></button>
-                <button class="delete-button">Delete</button>
-            </div>
-        `;
-
-    // Append the card to the container
-    productContainer.appendChild(card);
-
-    // Add event listeners for the Edit button
-    const editButton = card.querySelector(".edit-button");
+    const tr = document.createElement("tr");
+    // ...inside displayProducts, in tr.innerHTML...
+    tr.innerHTML = `
+  <td><img src="${product.image1 || ""}" alt="${
+      product.name
+    }" style="width:100px;height:100px;object-fit:cover;border-radius:8px;" /></td>
+  <td>${product.id || product.identification || ""}</td>
+  <td>${product.name || ""}</td>
+  <td>Ghc${product.sellingprice || ""}</td>
+  <td>Ghc${product.costprice || ""}</td>
+  <td>${product.seller || ""}</td>
+  <td class="desc-cell" title="${product.description || ""}">${
+      product.description
+        ? product.description.substring(0, 40) +
+          (product.description.length > 40 ? "..." : "")
+        : ""
+    }</td>
+  <td>${product.productSize || product.size || ""}</td>
+  <td>
+    <span style="display:inline-block;width:18px;height:18px;background:${
+      product.color || "#eee"
+    };border-radius:50%;border:1px solid #ccc;vertical-align:middle;margin-right:4px;"></span>
+    ${product.color || ""}
+  </td>
+  <td style="font-size:0.85em;color:#888;">${product.path || ""}</td>
+  <td>
+    <button class="edit-button">Edit</button>
+    <button class="delete-button">Delete</button>
+    <button class="move-button">Move</button>
+  </td>
+`;
+    const moveButton = tr.querySelector(".move-button");
+    moveButton.addEventListener("click", () => {
+      moveProduct(product, moveButton);
+    });
+    // Add event listeners for Edit and Delete
+    const editButton = tr.querySelector(".edit-button");
     editButton.addEventListener("click", () => {
       editProduct(
         product.identification,
@@ -122,21 +134,77 @@ function displayProducts(products, reset = true) {
         product.color,
         product.path
       );
-
-      // Change button text when clicked
       editButton.textContent = "Editing...";
     });
-
-    // Add event listener for the Delete button
-    const deleteButton = card.querySelector(".delete-button");
+    const deleteButton = tr.querySelector(".delete-button");
     deleteButton.addEventListener("click", () => {
       deleteProduct(product.identification, product.path, deleteButton);
-
-      // Change button text when clicked
       deleteButton.textContent = "Deleting...";
     });
+    tbody.appendChild(tr);
   });
   currentProductIndex += productsPerPage;
+}
+
+function moveProduct(product, moveButton) {
+  // Show modal
+  const modal = document.getElementById("moveModal");
+  const select = document.getElementById("movePathSelect");
+  const confirmBtn = document.getElementById("confirmMoveBtn");
+  const closeBtn = document.getElementById("closeMoveModal");
+
+  // Populate select with available paths
+  select.innerHTML = "";
+  paths
+    .filter((p) => p !== product.path)
+    .forEach((p) => {
+      const option = document.createElement("option");
+      option.value = p;
+      option.textContent = p;
+      select.appendChild(option);
+    });
+
+  modal.style.display = "flex";
+
+  // Remove previous listeners
+  confirmBtn.onclick = null;
+  closeBtn.onclick = null;
+
+  // Confirm move
+  confirmBtn.onclick = function () {
+    const newPath = select.value;
+    if (!newPath || newPath === product.path) {
+      modal.style.display = "none";
+      return;
+    }
+    confirmBtn.innerText = "Moving...";
+    // Copy product to new path
+    db.ref(`${newPath}/${product.id}`)
+      .set({ ...product, path: newPath })
+      .then(() => db.ref(`${product.path}/${product.id}`).remove())
+      .then(() => {
+        noteBox.style.display = "block";
+        notification.innerText = "Product moved successfully!";
+        getProducts();
+      })
+      .catch((err) => {
+        noteBox.style.display = "block";
+        notification.innerText = "Error moving product: " + err.message;
+      })
+      .finally(() => {
+        confirmBtn.innerText = "Move";
+        modal.style.display = "none";
+      });
+  };
+
+  // Close modal
+  closeBtn.onclick = function () {
+    modal.style.display = "none";
+  };
+  // Also close modal when clicking outside modal-content
+  modal.onclick = function (e) {
+    if (e.target === modal) modal.style.display = "none";
+  };
 }
 
 // Infinite scroll handler (works for both container and window scroll)
@@ -191,18 +259,27 @@ function getProducts() {
   });
 }
 
-// Update searchProducts to use new displayProducts
+// ...existing code...
+
+// Update searchProducts to filter and sort as you type
 function searchProducts() {
   const searchTerm = document
     .getElementById("search-input")
     .value.toLowerCase();
-  const filteredProducts = allProducts.filter((product) =>
+  let filteredProducts = allProducts.filter((product) =>
     product.name.toLowerCase().includes(searchTerm)
+  );
+  // Sort alphabetically by name
+  filteredProducts = filteredProducts.sort((a, b) =>
+    a.name.localeCompare(b.name)
   );
   displayProducts(filteredProducts, true);
 }
 
-// ...existing code...
+// Listen for input event for live search and sort
+document
+  .getElementById("search-input")
+  .addEventListener("input", searchProducts);
 
 // Function to edit product
 function editProduct(
